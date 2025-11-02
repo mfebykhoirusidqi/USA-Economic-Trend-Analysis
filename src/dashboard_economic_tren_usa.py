@@ -1,7 +1,7 @@
 """
 Professional Streamlit Dashboard
 US Economic Trend Analysis (2020–2025)
-Author: [Your Name]  |  GitHub: [your_github_link]
+Author: M Feby Khoiru Sidqi |  GitHub : https://github.com/mfebykhoirusidqi/USA-Economic-Trend-Analysis
 
 Features:
  - Interactive time-range filter
@@ -110,7 +110,7 @@ df_filtered = df[(df["Year"] >= year_min) & (df["Year"] <= year_max)].reset_inde
 # -------------------------
 # Header / Top metrics
 # -------------------------
-st.title("USA Economic Trends Dashboard (Portfolio Demo)")
+st.title("USA Economic Trends Dashboard (Portfolio Demo) By M Feby Khoiru Sidqi")
 st.markdown("Interactive analysis of macroeconomic indicators. This dashboard is built "
             "for portfolio demonstration—showing data wrangling, analytics, visualization, "
             "and interpretation skills suitable for data or economics roles.")
