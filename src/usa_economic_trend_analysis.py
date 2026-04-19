@@ -5,8 +5,8 @@ This project performs a statistical analysis and visualization
 of dummy macroeconomic data for the United States, focusing on GDP trends,
 inflation, unemployment rate, and interest rate relationships.
 
-Author: [Your Name]
-GitHub: [your_github_link]
+Author: M Feby Khoiru Sidqi
+GitHub: https://github.com/mfebykhoirusidqi/USA-Economic-Trend-Analysis
 """
 
 import os
@@ -55,7 +55,7 @@ predicted_gdp = b0 + b1 * year
 plt.figure(figsize=(9, 6))
 plt.plot(year, gdp, "o-", label="Actual GDP (Trillion USD)", color="#0077b6")
 plt.plot(year, predicted_gdp, "r--", label="Linear Regression (Predicted GDP)")
-plt.title("📈 United States GDP Trend (2020–2025)", fontsize=14)
+plt.title("United States GDP Trend (2020–2025)", fontsize=14)
 plt.xlabel("Year")
 plt.ylabel("GDP (Trillion USD)")
 plt.legend()

@@ -112,7 +112,7 @@ df_filtered = df[(df["Year"] >= year_min) & (df["Year"] <= year_max)].reset_inde
 # -------------------------
 st.title("USA Economic Trends Dashboard")
 st.markdown("### Macroeconomic Analysis (2020–2025)")
-st.caption("Developed by M Feby Khoiru Sidqi")
+st.caption("Developed by M Feby Khoiru Sidqi | [GitHub Repository](https://github.com/mfebykhoirusidqi/USA-Economic-Trend-Analysis)")
 
 # Quick Status Badge
 latest_gdp_growth = ((df_filtered['GDP_trillion_USD'].iloc[-1] - df_filtered['GDP_trillion_USD'].iloc[0]) / df_filtered['GDP_trillion_USD'].iloc[0]) * 100
@@ -206,8 +206,9 @@ with tab3:
         fig_proj.add_trace(go.Scatter(x=df_filtered["Date"], y=df_filtered["GDP_trillion_USD"],
                                       name="Actual GDP", mode="lines+markers"))
         
-        # FIX: Use freq="ME" instead of "M"
-        future_dates = pd.date_range(df_filtered["Date"].iloc[-1] + pd.offsets.MonthEnd(1), periods=projection_months, freq="ME")
+        # FIX: Robust future date generation for Pandas >=2.0
+        last_date = df_filtered["Date"].iloc[-1]
+        future_dates = pd.date_range(last_date, periods=projection_months+1, freq="ME")[1:]
         
         fig_proj.add_trace(go.Scatter(x=future_dates, y=y_future, name=f"Projection (+{projection_months} months)",
                                       mode="lines", line=dict(dash="dash", color="red")))

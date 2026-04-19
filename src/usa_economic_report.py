@@ -4,8 +4,8 @@ Automated Economic Report Generator
 Generates a professional PDF summary of the U.S. Economic Trend Analysis (2020–2025),
 including GDP growth, inflation, unemployment, and correlations between key indicators.
 
-Author: [Your Name]
-GitHub: [your_github_link]
+Author: M Feby Khoiru Sidqi
+GitHub: https://github.com/mfebykhoirusidqi/USA-Economic-Trend-Analysis
 """
 
 import os
@@ -52,7 +52,7 @@ def generate_us_economic_report():
     content = []
 
     # Title
-    content.append(Paragraph("📊 United States Economic Trends Report (2020–2025)", title_style))
+    content.append(Paragraph("United States Economic Trends Report (2020–2025)", title_style))
     content.append(Paragraph(f"Generated on {datetime.now().strftime('%B %d, %Y')}", normal))
     content.append(Spacer(1, 12))
 
@@ -72,7 +72,7 @@ def generate_us_economic_report():
         content.append(Image(chart_path, width=6.0 * inch, height=3.5 * inch))
         content.append(Spacer(1, 12))
     else:
-        content.append(Paragraph("⚠️ Chart image not found. Please run the analysis script first.", normal))
+        content.append(Paragraph("Chart image not found. Please run the analysis script first.", normal))
         content.append(Spacer(1, 12))
 
     # Key Insights
