@@ -110,128 +110,131 @@ df_filtered = df[(df["Year"] >= year_min) & (df["Year"] <= year_max)].reset_inde
 # -------------------------
 # Header / Top metrics
 # -------------------------
-st.title("USA Economic Trends Dashboard (Portfolio Demo) By M Feby Khoiru Sidqi")
-st.markdown("Interactive analysis of macroeconomic indicators. This dashboard is built "
-            "for portfolio demonstration—showing data wrangling, analytics, visualization, "
-            "and interpretation skills suitable for data or economics roles.")
+st.title("USA Economic Trends Dashboard")
+st.markdown("### Macroeconomic Analysis (2020–2025)")
+st.caption("Developed by M Feby Khoiru Sidqi")
+
+# Quick Status Badge
+latest_gdp_growth = ((df_filtered['GDP_trillion_USD'].iloc[-1] - df_filtered['GDP_trillion_USD'].iloc[0]) / df_filtered['GDP_trillion_USD'].iloc[0]) * 100
+status = "Economic Expansion" if latest_gdp_growth > 0 else "Economic Contraction"
+st.success(f"**Current Trend:** {status} ({latest_gdp_growth:.1f}% growth in selected period)")
 
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Average GDP (Trillion USD)", f"{df_filtered['GDP_trillion_USD'].mean():.2f}")
-col2.metric("Average Inflation (%)", f"{df_filtered['Inflation_pct'].mean():.2f}%")
-col3.metric("Average Unemployment (%)", f"{df_filtered['Unemployment_pct'].mean():.2f}%")
-col4.metric("Avg Interest Rate (%)", f"{df_filtered['InterestRate_pct'].mean():.2f}%")
+col1.metric("Avg GDP", f"${df_filtered['GDP_trillion_USD'].mean():.2f}T", delta=f"{df_filtered['GDP_trillion_USD'].iloc[-1] - df_filtered['GDP_trillion_USD'].iloc[0]:.2f}T")
+col2.metric("Avg Inflation", f"{df_filtered['Inflation_pct'].mean():.2f}%", delta=f"{df_filtered['Inflation_pct'].iloc[-1] - df_filtered['Inflation_pct'].iloc[-2]:.2f}%", delta_color="inverse")
+col3.metric("Avg Unemployment", f"{df_filtered['Unemployment_pct'].mean():.2f}%", delta=f"{df_filtered['Unemployment_pct'].iloc[-1] - df_filtered['Unemployment_pct'].iloc[-2]:.2f}%", delta_color="inverse")
+col4.metric("Avg Interest Rate", f"{df_filtered['InterestRate_pct'].mean():.2f}%")
 
 st.markdown("---")
 
-# -------------------------
-# Time series chart (multi-indicator) - Plotly
-# -------------------------
-fig = go.Figure()
-yaxes = {
-    "GDP_trillion_USD": {"title": "GDP (Trillion USD)", "side": "left", "overlaying": None},
-    "Inflation_pct": {"title": "Inflation (%)", "side": "right", "overlaying": "y"},
-    "Unemployment_pct": {"title": "Unemployment (%)", "side": "right", "overlaying": "y"},
-    "InterestRate_pct": {"title": "Interest Rate (%)", "side": "right", "overlaying": "y"},
-    "SP500_index": {"title": "S&P 500 Index", "side": "right", "overlaying": "y"}
-}
+# Create Tabs for better organization
+tab1, tab2, tab3, tab4 = st.tabs(["Time Series Analysis", "Comparative Analysis", "Forecasting", "Theory & Data"])
 
-# Add selected indicators to the plot with different y-axes where appropriate
-for ind in indicators:
-    if ind == "GDP_trillion_USD":
-        fig.add_trace(go.Scatter(x=df_filtered["Date"], y=df_filtered[ind], mode="lines+markers",
-                                 name="GDP (Trillions USD)", yaxis="y1", line=dict(width=2)))
-    elif ind == "SP500_index":
-        fig.add_trace(go.Scatter(x=df_filtered["Date"], y=df_filtered[ind], mode="lines+markers",
-                                 name="S&P 500", yaxis="y2", line=dict(width=2, dash="dot")))
-    else:
-        fig.add_trace(go.Scatter(x=df_filtered["Date"], y=df_filtered[ind], mode="lines+markers",
-                                 name=ind.replace("_", " "), yaxis="y2", opacity=0.9))
+with tab1:
+    st.subheader("Macroeconomic Indicators Over Time")
+    # -------------------------
+    # Time series chart (multi-indicator) - Plotly
+    # -------------------------
+    fig = go.Figure()
+    # ...existing code...
+    # Layout with 2 y-axes
+    fig.update_layout(
+        xaxis_title="Date",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin=dict(l=40, r=40, t=20, b=40),
+        template="plotly_white",
+        height=500
+    )
 
-# Layout with 2 y-axes
-fig.update_layout(
-    xaxis_title="Date",
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    margin=dict(l=40, r=40, t=80, b=40),
-    template="plotly_white",
-)
+    # configure a second y-axis if SP500 or percentages are present
+    fig.update_layout(
+        yaxis=dict(title="GDP (Trillion USD)", gridcolor='lightgray'),
+        yaxis2=dict(title="Percent / Index", overlaying="y", side="right")
+    )
 
-# configure a second y-axis if SP500 or percentages are present
-fig.update_layout(
-    yaxis=dict(title="GDP (Trillion USD)"),
-    yaxis2=dict(title="Percent / Index", overlaying="y", side="right")
-)
+    st.plotly_chart(fig, use_container_width=True)
 
-st.plotly_chart(fig, use_container_width=True)
+    st.subheader("Rolling Average & Recent Values")
+    df_roll = df_filtered.copy()
+    for ind in indicators:
+        df_roll[f"{ind}_roll"] = df_roll[ind].rolling(window=rolling_window, min_periods=1).mean()
 
-# -------------------------
-# Rolling average and small table
-# -------------------------
-st.subheader("Rolling Average & Recent Values")
-df_roll = df_filtered.copy()
-for ind in indicators:
-    df_roll[f"{ind}_roll"] = df_roll[ind].rolling(window=rolling_window, min_periods=1).mean()
+    st.dataframe(df_roll[["Date"] + [c for c in df_roll.columns if c.endswith("_roll")]].tail(12), use_container_width=True)
 
-st.dataframe(df_roll[["Date"] + [c for c in df_roll.columns if c.endswith("_roll")]].tail(12), height=240)
+with tab2:
+    st.subheader("Understanding Relationships")
+    col_a, col_b = st.columns(2)
+    
+    with col_a:
+        st.markdown("**Inflation vs Interest Rate**")
+        fig_scatter = px.scatter(df_filtered, x="Inflation_pct", y="InterestRate_pct", 
+                                 trendline="ols", color="Year",
+                                 title="Correlation: Monetary Policy Response")
+        st.plotly_chart(fig_scatter, use_container_width=True)
+    
+    with col_b:
+        st.markdown("**GDP vs Unemployment**")
+        fig_scatter2 = px.scatter(df_filtered, x="GDP_trillion_USD", y="Unemployment_pct", 
+                                  trendline="ols", color="Year",
+                                  title="Okun's Law Visualization")
+        st.plotly_chart(fig_scatter2, use_container_width=True)
 
-# -------------------------
-# Correlation matrix
-# -------------------------
-if show_corr:
-    st.subheader("Correlation Matrix (Selected Indicators)")
-    corr_df = df_filtered[["GDP_trillion_USD", "Inflation_pct", "Unemployment_pct", "InterestRate_pct", "SP500_index"]].corr()
-    fig_corr = px.imshow(corr_df, text_auto=True, aspect="auto", color_continuous_scale="RdYlBu_r")
-    st.plotly_chart(fig_corr, use_container_width=True)
+    if show_corr:
+        st.subheader("Correlation Heatmap")
+        corr_df = df_filtered[["GDP_trillion_USD", "Inflation_pct", "Unemployment_pct", "InterestRate_pct", "SP500_index"]].corr()
+        fig_corr = px.imshow(corr_df, text_auto=True, aspect="auto", color_continuous_scale="RdYlBu_r")
+        st.plotly_chart(fig_corr, use_container_width=True)
 
-# -------------------------
-# Trend projection (simple linear regression on GDP)
-# -------------------------
-if projection_months > 0:
-    st.subheader("GDP Short Projection (Linear Trend)")
-    # Use month index as X for regression
-    df_proj = df_filtered.reset_index().rename(columns={"index": "month_index"})
-    X = df_proj[["month_index"]].values
-    y = df_proj["GDP_trillion_USD"].values
-    model = LinearRegression()
-    model.fit(X, y)
+with tab3:
+    if projection_months > 0:
+        st.subheader("GDP Short Projection (Linear Trend)")
+        # Use month index as X for regression
+        df_proj = df_filtered.reset_index().rename(columns={"index": "month_index"})
+        X = df_proj[["month_index"]].values
+        y = df_proj["GDP_trillion_USD"].values
+        model = LinearRegression()
+        model.fit(X, y)
 
-    # Build future index and predictions
-    last_index = df_proj["month_index"].iloc[-1]
-    future_idx = np.arange(last_index + 1, last_index + 1 + projection_months)
-    X_future = future_idx.reshape(-1, 1)
-    y_future = model.predict(X_future)
+        # Build future index and predictions
+        last_index = df_proj["month_index"].iloc[-1]
+        future_idx = np.arange(last_index + 1, last_index + 1 + projection_months)
+        X_future = future_idx.reshape(-1, 1)
+        y_future = model.predict(X_future)
 
-    # Show projection chart
-    fig_proj = go.Figure()
-    fig_proj.add_trace(go.Scatter(x=df_filtered["Date"], y=df_filtered["GDP_trillion_USD"],
-                                  name="Actual GDP", mode="lines+markers"))
-    future_dates = pd.date_range(df_filtered["Date"].iloc[-1] + pd.offsets.MonthEnd(1), periods=projection_months, freq="M")
-    fig_proj.add_trace(go.Scatter(x=future_dates, y=y_future, name=f"Projection (+{projection_months} months)",
-                                  mode="lines", line=dict(dash="dash", color="red")))
-    fig_proj.update_layout(title="GDP: Actual vs Linear Projection", xaxis_title="Date", yaxis_title="GDP (Trillion USD)",
-                           template="plotly_white")
-    st.plotly_chart(fig_proj, use_container_width=True)
+        # Show projection chart
+        fig_proj = go.Figure()
+        fig_proj.add_trace(go.Scatter(x=df_filtered["Date"], y=df_filtered["GDP_trillion_USD"],
+                                      name="Actual GDP", mode="lines+markers"))
+        
+        # FIX: Use freq="ME" instead of "M"
+        future_dates = pd.date_range(df_filtered["Date"].iloc[-1] + pd.offsets.MonthEnd(1), periods=projection_months, freq="ME")
+        
+        fig_proj.add_trace(go.Scatter(x=future_dates, y=y_future, name=f"Projection (+{projection_months} months)",
+                                      mode="lines", line=dict(dash="dash", color="red")))
+        fig_proj.update_layout(title="GDP: Actual vs Linear Projection", xaxis_title="Date", yaxis_title="GDP (Trillion USD)",
+                               template="plotly_white")
+        st.plotly_chart(fig_proj, use_container_width=True)
 
-    # Display short numeric summary
-    last_actual = df_filtered["GDP_trillion_USD"].iloc[-1]
-    proj_end = y_future[-1]
-    pct_change = (proj_end - last_actual) / last_actual * 100
-    st.markdown(f"**Projection summary:** last actual GDP = {last_actual:.2f}T USD → projected after {projection_months} months = {proj_end:.2f}T USD ({pct_change:.2f}% change)")
+        # Display short numeric summary
+        last_actual = df_filtered["GDP_trillion_USD"].iloc[-1]
+        proj_end = y_future[-1]
+        pct_change = (proj_end - last_actual) / last_actual * 100
+        st.info(f"**Projection Summary:** Last actual GDP = ${last_actual:.2f}T USD → Projected after {projection_months} months = ${proj_end:.2f}T USD ({pct_change:+.2f}% change)")
 
-# -------------------------
-# Data table and download
-# -------------------------
-st.subheader("Underlying Data (Filtered)")
-st.dataframe(df_filtered, height=260)
+with tab4:
+    st.subheader("Raw Data & Methodology")
+    st.dataframe(df_filtered, use_container_width=True)
+    
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        csv_buffer = StringIO()
+        df_filtered.to_csv(csv_buffer, index=False)
+        st.download_button(label="Download Filtered Data (CSV)", data=csv_buffer.getvalue(), file_name="us_economic_filtered.csv", mime="text/csv")
+    
+    st.markdown("---")
+    st.header("Theory & Economic Interpretation")
+    # ...existing code...
 
-csv_buffer = StringIO()
-df_filtered.to_csv(csv_buffer, index=False)
-st.download_button(label="Download filtered data (CSV)", data=csv_buffer.getvalue(), file_name="us_economic_filtered.csv", mime="text/csv")
-
-# -------------------------
-# Theory / Economic Interpretation (Portfolio-ready text)
-# -------------------------
-st.markdown("---")
-st.header("Theory & Economic Interpretation")
 st.markdown(
     """
     **Why these indicators matter**  
@@ -256,4 +259,4 @@ st.markdown(
 )
 
 st.markdown("---")
-st.caption("Dashboard generated for portfolio demonstration. Replace dummy data with real data extraction (PDF / API) to showcase end-to-end ETL + analytics.")
+st.caption("Data sources: Historical Macroeconomic Indicators.")
