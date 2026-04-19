@@ -35,7 +35,7 @@ st.set_page_config(
 @st.cache_data
 def load_dummy_data():
     # Create realistic monthly dummy data for 2020-2025
-    rng = pd.date_range("2020-01-01", "2025-12-31", freq="M")
+    rng = pd.date_range("2020-01-01", "2025-12-31", freq="ME")
     np.random.seed(42)
 
     # Base trends (annualized / smoothed)
